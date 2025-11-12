@@ -164,6 +164,12 @@ async function ensureDir(dir) {
   await fs.mkdir(dir, { recursive: true });
 }
 
+async function ensureNoJekyll() {
+  const filePath = path.join(OUTPUT_DIR, '.nojekyll');
+  await ensureDir(path.dirname(filePath));
+  await fs.writeFile(filePath, '');
+}
+
 async function copyAssets(fromDir, toDir) {
   const entries = await fs.readdir(fromDir, { withFileTypes: true });
 
@@ -418,6 +424,7 @@ ${deckListMarkup}
 
 async function main() {
   await ensureChromiumDependencies();
+  await ensureNoJekyll();
   const conversions = [
     { label: 'HTML', args: [] },
     { label: 'PDF', args: ['--pdf', '--no-html'] },
