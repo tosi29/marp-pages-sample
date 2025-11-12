@@ -1,0 +1,42 @@
+/* @theme brand */
+@import 'default';
+
+section {
+  font-family: 'Noto Sans JP', 'Noto Sans', sans-serif;
+  background-color: #f6f8fa;
+  color: #24292e;
+}
+
+section h1 {
+  color: #0969da;
+}
+
+section::after {
+  content: attr(data-pagination);
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  font-size: 0.6rem;
+  color: rgba(36, 41, 46, 0.5);
+}
+
+section.lead {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+section.lead h1 {
+  font-size: 2.4rem;
+}
+
+section.inverse {
+  background: #24292e;
+  color: #f6f8fa;
+}
+
+section.inverse h1 {
+  color: #f6f8fa;
+}
