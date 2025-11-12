@@ -1,0 +1,12 @@
+{
+  "name": "marp-pages-sample",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "marp --config marp.config.js",
+    "start": "marp --config marp.config.js --server --watch"
+  },
+  "devDependencies": {
+    "@marp-team/marp-cli": "^3.2.0"
+  }
+}
