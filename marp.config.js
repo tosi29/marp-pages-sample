@@ -3,5 +3,8 @@ module.exports = {
   output: 'docs',
   allowLocalFiles: true,
   html: true,
-  themeSet: ['themes/brand.css'],
+  themeSet: [
+    'themes/brand.css',
+    'slides/alice/hello-world/_theme/hello-world.css',
+  ],
 };

@@ -1,6 +1,6 @@
 ---
 marp: true
-theme: brand
+theme: hello-world
 paginate: true
 ---
 
