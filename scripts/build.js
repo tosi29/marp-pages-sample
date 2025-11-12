@@ -38,6 +38,7 @@ function getChromiumEnv() {
         PUPPETEER_EXECUTABLE_PATH: executablePath,
         CHROME_PATH: executablePath,
       };
+      return cachedChromiumEnv;
     }
   } catch (error) {
     console.warn(
@@ -45,6 +46,31 @@ function getChromiumEnv() {
         + 'Install Google Chrome or set CHROME_PATH / PUPPETEER_EXECUTABLE_PATH '
         + 'if PDF, PPTX, or PNG generation fails.'
     );
+  }
+
+  if (!cachedChromiumEnv.PUPPETEER_EXECUTABLE_PATH) {
+    try {
+      // Playwright also bundles Chromium. Use it as a fallback when available.
+      // eslint-disable-next-line global-require
+      const { chromium } = require('playwright');
+      const executablePath =
+        chromium && typeof chromium.executablePath === 'function'
+          ? chromium.executablePath()
+          : undefined;
+
+      if (executablePath) {
+        cachedChromiumEnv = {
+          PUPPETEER_EXECUTABLE_PATH: executablePath,
+          CHROME_PATH: executablePath,
+        };
+      }
+    } catch (error) {
+      console.warn(
+        'Warning: Could not resolve a Chromium executable from Playwright. '
+          + 'Install Google Chrome or set CHROME_PATH / PUPPETEER_EXECUTABLE_PATH '
+          + 'if PDF, PPTX, or PNG generation fails.'
+      );
+    }
   }
 
   return cachedChromiumEnv;
@@ -118,7 +144,11 @@ async function runMarp(additionalArgs = []) {
       ['marp', '--config', 'marp.config.js', ...additionalArgs],
       {
         stdio: 'inherit',
-        env: { ...process.env, ...getChromiumEnv() },
+        env: {
+          ...process.env,
+          CHROME_NO_SANDBOX: '1',
+          ...getChromiumEnv(),
+        },
       }
     );
 
