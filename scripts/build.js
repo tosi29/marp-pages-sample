@@ -275,22 +275,27 @@ async function collectDecks() {
   return decksByMember;
 }
 
+function encodePathSegment(value) {
+  return encodeURIComponent(value);
+}
+
 function renderDeckList(decksByMember) {
   const memberSections = decksByMember
     .map(({ memberId, memberLabel, decks }) => {
       const deckItems = decks
         .map(({ slug, title }) => {
           const escapedTitle = escapeHtml(title);
-          const basePath = `${memberId}/${slug}`;
+          const basePath = `${encodePathSegment(memberId)}/${encodePathSegment(slug)}`;
+          const escapedBasePath = escapeHtml(basePath);
 
           return `
           <li class="deck-entry">
-            <a class="deck-title" href="${basePath}/">${escapedTitle}</a>
+            <a class="deck-title" href="${escapedBasePath}/">${escapedTitle}</a>
             <span class="deck-links" aria-label="Available formats">
-              <a href="${basePath}/">HTML</a>
-              <a href="${basePath}/index.pdf">PDF</a>
-              <a href="${basePath}/index.pptx">PPTX</a>
-              <a href="${basePath}/index.png">PNG</a>
+              <a href="${escapedBasePath}/">HTML</a>
+              <a href="${escapedBasePath}/index.pdf">PDF</a>
+              <a href="${escapedBasePath}/index.pptx">PPTX</a>
+              <a href="${escapedBasePath}/index.png">PNG</a>
             </span>
           </li>`;
         })
