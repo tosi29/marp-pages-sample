@@ -24,7 +24,7 @@ The docs/ directory already includes a `.nojekyll` file so that GitHub Pages ser
     ```bash
     npm run build
     ```
-   The command uses `marp.config.js` to read the `slides/` tree, load any theme files under `themes/`, and emit HTML, PDF, PPTX, and PNG files under `docs/` for each deck.
+   The command uses `marp.config.js` to read the `slides/` tree, load any theme files under `themes/`, and emit HTML, PDF, PPTX, and PNG files under `docs/` for each deck. The same build step auto-generates `docs/index.html` so the landing page always lists the available decks and their download formats without requiring manual edits.
    On Debian/Ubuntu-like environments the build script will automatically install the missing shared libraries for Chromium via `npx playwright install-deps chromium` (cached under `node_modules/.cache/`). If you lack root privileges, run that command manually or set `MARP_SKIP_CHROMIUM_DEPS=1` to opt out and supply your own Chrome binary through `CHROME_PATH` / `PUPPETEER_EXECUTABLE_PATH`.
    The build script invokes Marp CLI multiple times so that every deck emits HTML, PDF, PPTX, and a single-slide PNG at `docs/<member>/<slug>/index.{html,pdf,pptx,png}` while copying any static assets alongside them. The HTML (and any copied static assets) stay checked in for GitHub Pages, while the binary artefacts are generated on demand and excluded from commits via `.gitignore`.
 3. (Optional) Preview decks locally with live reload:
