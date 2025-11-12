@@ -44,7 +44,7 @@ function getChromiumEnv() {
     console.warn(
       'Warning: Could not resolve a Chromium executable from Puppeteer. '
         + 'Install Google Chrome or set CHROME_PATH / PUPPETEER_EXECUTABLE_PATH '
-        + 'if PDF, PPTX, or PNG generation fails.'
+        + 'if PDF or PPTX generation fails.'
     );
   }
 
@@ -68,7 +68,7 @@ function getChromiumEnv() {
       console.warn(
         'Warning: Could not resolve a Chromium executable from Playwright. '
           + 'Install Google Chrome or set CHROME_PATH / PUPPETEER_EXECUTABLE_PATH '
-          + 'if PDF, PPTX, or PNG generation fails.'
+          + 'if PDF or PPTX generation fails.'
       );
     }
   }
@@ -295,7 +295,6 @@ function renderDeckList(decksByMember) {
               <a href="${escapedBasePath}/">HTML</a>
               <a href="${escapedBasePath}/index.pdf">PDF</a>
               <a href="${escapedBasePath}/index.pptx">PPTX</a>
-              <a href="${escapedBasePath}/index.png">PNG</a>
             </span>
           </li>`;
         })
@@ -406,7 +405,7 @@ async function writeIndex(decksByMember) {
     <p>
       Each deck is generated from <code>slides/&lt;member&gt;/&lt;slug&gt;</code> and
       published here for GitHub Pages. Every entry provides direct links to the
-      HTML presentation along with the PDF, PPTX, and PNG exports published by
+      HTML presentation along with the PDF and PPTX exports published by
       the build pipeline.
     </p>
 ${deckListMarkup}
@@ -423,7 +422,6 @@ async function main() {
     { label: 'HTML', args: [] },
     { label: 'PDF', args: ['--pdf', '--no-html'] },
     { label: 'PPTX', args: ['--pptx', '--no-html'] },
-    { label: 'PNG', args: ['--image', 'png', '--no-html'] },
   ];
 
   for (const conversion of conversions) {
