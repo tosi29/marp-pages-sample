@@ -9,10 +9,10 @@ slides/<member>/<slug>/index.md  # Slide deck entry point
 slides/<member>/<slug>/*         # Images or other assets for the deck
 themes/                          # Shared custom themes
 marp.config.js                   # Shared Marp CLI configuration
-docs/                            # Build output for GitHub Pages
+docs/                            # Build output for GitHub Pages (generated)
 ```
 
-The docs/ directory already includes a `.nojekyll` file so that GitHub Pages serves files without Jekyll processing.
+The build script ensures `docs/.nojekyll` exists so that GitHub Pages serves files without Jekyll processing.
 
 ## Usage
 
@@ -26,7 +26,7 @@ The docs/ directory already includes a `.nojekyll` file so that GitHub Pages ser
     ```
    The command uses `marp.config.js` to read the `slides/` tree, load any theme files under `themes/`, and emit HTML, PDF, and PPTX files under `docs/` for each deck. The same build step auto-generates `docs/index.html` so the landing page always lists the available decks and their download formats without requiring manual edits.
    On Debian/Ubuntu-like environments the build script will automatically install the missing shared libraries for Chromium via `npx playwright install-deps chromium` (cached under `node_modules/.cache/`). If you lack root privileges, run that command manually or set `MARP_SKIP_CHROMIUM_DEPS=1` to opt out and supply your own Chrome binary through `CHROME_PATH` / `PUPPETEER_EXECUTABLE_PATH`.
-   The build script invokes Marp CLI multiple times so that every deck emits HTML, PDF, and PPTX at `docs/<member>/<slug>/index.{html,pdf,pptx}` while copying any static assets alongside them. The HTML (and any copied static assets) stay checked in for GitHub Pages, while the binary artefacts are generated on demand and excluded from commits via `.gitignore`.
+   The build script invokes Marp CLI multiple times so that every deck emits HTML, PDF, and PPTX at `docs/<member>/<slug>/index.{html,pdf,pptx}` while copying any static assets alongside them. The entire `docs/` directory is generated, so Git should stay clean after the build unless you add new slide sources.
 3. (Optional) Preview decks locally with live reload:
    ```bash
    npm run start
