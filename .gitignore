@@ -1,3 +1,6 @@
 node_modules/
 .DS_Store
 npm-debug.log*
+docs/**/index.pdf
+docs/**/index.pptx
+docs/**/index.png
