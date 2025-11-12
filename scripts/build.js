@@ -185,6 +185,238 @@ async function copyAssets(fromDir, toDir) {
   }
 }
 
+function toTitleCase(value) {
+  return value
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function escapeHtml(value) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function extractDeckTitle(markdownPath, slug) {
+  try {
+    const raw = await fs.readFile(markdownPath, 'utf8');
+    const lines = raw.split(/\r?\n/);
+    let index = 0;
+
+    if (lines[index] && lines[index].trim() === '---') {
+      index += 1;
+      while (index < lines.length && lines[index].trim() !== '---') {
+        index += 1;
+      }
+      if (lines[index] && lines[index].trim() === '---') index += 1;
+    }
+
+    while (index < lines.length) {
+      const line = lines[index].trim();
+      if (line.startsWith('#')) {
+        return line.replace(/^#+\s*/, '').trim() || toTitleCase(slug);
+      }
+      index += 1;
+    }
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+
+  return toTitleCase(slug);
+}
+
+async function collectDecks() {
+  const decksByMember = [];
+  let memberDirs;
+
+  try {
+    memberDirs = await fs.readdir(INPUT_DIR, { withFileTypes: true });
+  } catch (error) {
+    if (error.code === 'ENOENT') return decksByMember;
+    throw error;
+  }
+
+  for (const memberDir of memberDirs) {
+    if (!memberDir.isDirectory()) continue;
+
+    const memberId = memberDir.name;
+    const memberPath = path.join(INPUT_DIR, memberId);
+    const deckEntries = [];
+    const deckDirs = await fs.readdir(memberPath, { withFileTypes: true });
+
+    for (const deckDir of deckDirs) {
+      if (!deckDir.isDirectory()) continue;
+      const slug = deckDir.name;
+      const markdownPath = path.join(memberPath, slug, 'index.md');
+      const title = await extractDeckTitle(markdownPath, slug);
+
+      deckEntries.push({
+        slug,
+        title,
+      });
+    }
+
+    if (deckEntries.length > 0) {
+      deckEntries.sort((a, b) => a.title.localeCompare(b.title));
+      decksByMember.push({
+        memberId,
+        memberLabel: toTitleCase(memberId),
+        decks: deckEntries,
+      });
+    }
+  }
+
+  decksByMember.sort((a, b) => a.memberLabel.localeCompare(b.memberLabel));
+  return decksByMember;
+}
+
+function encodePathSegment(value) {
+  return encodeURIComponent(value);
+}
+
+function renderDeckList(decksByMember) {
+  const memberSections = decksByMember
+    .map(({ memberId, memberLabel, decks }) => {
+      const deckItems = decks
+        .map(({ slug, title }) => {
+          const escapedTitle = escapeHtml(title);
+          const basePath = `${encodePathSegment(memberId)}/${encodePathSegment(slug)}`;
+          const escapedBasePath = escapeHtml(basePath);
+
+          return `
+          <li class="deck-entry">
+            <a class="deck-title" href="${escapedBasePath}/">${escapedTitle}</a>
+            <span class="deck-links" aria-label="Available formats">
+              <a href="${escapedBasePath}/">HTML</a>
+              <a href="${escapedBasePath}/index.pdf">PDF</a>
+              <a href="${escapedBasePath}/index.pptx">PPTX</a>
+              <a href="${escapedBasePath}/index.png">PNG</a>
+            </span>
+          </li>`;
+        })
+        .join('');
+
+      return `
+      <li>
+        <strong>${escapeHtml(memberLabel)}</strong>
+        <ul class="deck-list">
+          ${deckItems}
+        </ul>
+      </li>`;
+    })
+    .join('');
+
+  return `
+    <ul class="member-list">
+      ${memberSections || '<li><em>No decks found. Run <code>npm run build</code> to generate slides.</em></li>'}
+    </ul>`;
+}
+
+async function writeIndex(decksByMember) {
+  const indexPath = path.join(OUTPUT_DIR, 'index.html');
+  const deckListMarkup = renderDeckList(decksByMember);
+  const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Team slide decks</title>
+    <meta name="description" content="Auto-generated index of Marp decks for GitHub Pages." />
+    <style>
+      body {
+        font-family: 'Noto Sans', system-ui, sans-serif;
+        margin: 2rem auto;
+        max-width: 720px;
+        line-height: 1.6;
+        color: #24292e;
+      }
+      h1 {
+        color: #0969da;
+        margin-bottom: 1rem;
+      }
+      a {
+        text-decoration: none;
+        color: #0969da;
+        font-weight: 600;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      code {
+        background: #f6f8fa;
+        padding: 0.1rem 0.3rem;
+        border-radius: 4px;
+      }
+      .member-list {
+        list-style: none;
+        padding-left: 0;
+      }
+      .member-list > li {
+        margin-bottom: 1.5rem;
+      }
+      .deck-list {
+        list-style: none;
+        padding-left: 0;
+        margin: 0.5rem 0 0;
+      }
+      .deck-entry {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        align-items: baseline;
+        margin-bottom: 0.4rem;
+      }
+      .deck-title {
+        font-weight: 600;
+      }
+      .deck-links {
+        display: inline-flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        font-size: 0.9rem;
+        color: #57606a;
+      }
+      .deck-links::before {
+        content: '(';
+        color: #8c959f;
+      }
+      .deck-links::after {
+        content: ')';
+        color: #8c959f;
+      }
+      .deck-links a {
+        font-weight: 500;
+      }
+      .deck-links a + a::before {
+        content: '·';
+        color: #8c959f;
+        margin: 0 0.2rem 0 0.1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="generated-note">This page is auto-generated by <code>scripts/build.js</code>. Do not edit manually.</p>
+    <h1>Team slide decks</h1>
+    <p>
+      Each deck is generated from <code>slides/&lt;member&gt;/&lt;slug&gt;</code> and
+      published here for GitHub Pages. Every entry provides direct links to the
+      HTML presentation along with the PDF, PPTX, and PNG exports published by
+      the build pipeline.
+    </p>
+${deckListMarkup}
+  </body>
+</html>`;
+
+  await ensureDir(path.dirname(indexPath));
+  await fs.writeFile(indexPath, `${html}\n`);
+}
+
 async function main() {
   await ensureChromiumDependencies();
   const conversions = [
@@ -199,6 +431,9 @@ async function main() {
     await runMarp(conversion.args);
   }
   await copyAssets(INPUT_DIR, OUTPUT_DIR);
+
+  const decksByMember = await collectDecks();
+  await writeIndex(decksByMember);
 }
 
 main().catch((error) => {
