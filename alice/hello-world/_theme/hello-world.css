@@ -1,0 +1,47 @@
+/* @theme hello-world */
+
+@import 'brand';
+
+:root {
+  --hello-accent: #b457ff;
+  --hello-accent-strong: #7f1fda;
+  --hello-bg: #f4f0ff;
+  --hello-gradient: linear-gradient(135deg, rgba(180, 87, 255, 0.18), rgba(127, 31, 218, 0.18));
+}
+
+section {
+  background: var(--hello-bg);
+  background-image: var(--hello-gradient);
+  color: #2a2734;
+  border-top: 0.75rem solid var(--hello-accent);
+}
+
+section h1,
+section h2,
+section h3 {
+  color: var(--hello-accent-strong);
+}
+
+section::after {
+  color: rgba(42, 39, 52, 0.45);
+}
+
+section.lead {
+  background: #fff;
+  border: none;
+  box-shadow: 0 1.5rem 3rem rgba(127, 31, 218, 0.15);
+}
+
+section.lead h1 {
+  font-size: 2.6rem;
+}
+
+section.inverse {
+  background: #2a2734;
+  color: #fefbff;
+  border: none;
+}
+
+section.inverse h1 {
+  color: #fefbff;
+}
